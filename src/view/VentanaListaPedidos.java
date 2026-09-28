@@ -12,6 +12,9 @@ import java.awt.*;
  *
  * Utiliza JTable y DefaultTableModel para representar
  * la información de manera tabular.
+ *
+ * La tabla se actualiza automáticamente cuando cambia
+ * la información de los pedidos.
  */
 public class VentanaListaPedidos extends JFrame {
 
@@ -21,20 +24,32 @@ public class VentanaListaPedidos extends JFrame {
     private DefaultTableModel modeloTabla;
 
     /**
-     * Crea la ventana de listado y carga inmediatamente
+     * Crea la ventana de listado, registra la vista
+     * para recibir cambios y carga inmediatamente
      * los pedidos existentes.
      *
      * @param controlador controlador compartido del sistema
      */
     public VentanaListaPedidos(ControladorPedidos controlador) {
+
         this.controlador = controlador;
 
         configurarVentana();
         inicializarComponentes();
+
+        controlador.agregarListener(
+                this::cargarPedidos
+        );
+
         cargarPedidos();
     }
 
+    /**
+     * Configura las características principales
+     * de la ventana.
+     */
     private void configurarVentana() {
+
         setTitle("SpeedFast - Lista de Pedidos");
         setSize(750, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -42,6 +57,9 @@ public class VentanaListaPedidos extends JFrame {
         setResizable(false);
     }
 
+    /**
+     * Inicializa la tabla y el botón de cierre.
+     */
     private void inicializarComponentes() {
 
         JPanel panelPrincipal = new JPanel(
@@ -64,7 +82,10 @@ public class VentanaListaPedidos extends JFrame {
         modeloTabla = new DefaultTableModel(columnas, 0) {
 
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(
+                    int row,
+                    int column
+            ) {
                 return false;
             }
         };
@@ -78,16 +99,16 @@ public class VentanaListaPedidos extends JFrame {
         JScrollPane scrollTabla =
                 new JScrollPane(tablaPedidos);
 
-        JButton btnRefrescar =
-                new JButton("Refrescar");
-
         JButton btnCerrar =
                 new JButton("Cerrar");
 
         JPanel panelBotones =
-                new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.RIGHT
+                        )
+                );
 
-        panelBotones.add(btnRefrescar);
         panelBotones.add(btnCerrar);
 
         panelPrincipal.add(
@@ -116,14 +137,11 @@ public class VentanaListaPedidos extends JFrame {
 
         add(panelPrincipal);
 
-        btnRefrescar.addActionListener(
-                e -> cargarPedidos()
-        );
-
         btnCerrar.addActionListener(
                 e -> dispose()
         );
     }
+
     /**
      * Actualiza la tabla utilizando los pedidos
      * almacenados en el controlador.
@@ -135,22 +153,28 @@ public class VentanaListaPedidos extends JFrame {
 
         modeloTabla.setRowCount(0);
 
-        for (Pedido pedido : controlador.listarPedidos()) {
+        for (Pedido pedido :
+                controlador.listarPedidos()) {
 
             String repartidor = "Sin asignar";
 
             if (pedido.getRepartidor() != null) {
+
                 repartidor =
-                        pedido.getRepartidor().getNombre();
+                        pedido
+                                .getRepartidor()
+                                .getNombre();
             }
 
-            modeloTabla.addRow(new Object[]{
-                    pedido.getId(),
-                    pedido.getDireccion(),
-                    pedido.getTipo(),
-                    pedido.getEstado(),
-                    repartidor
-            });
+            modeloTabla.addRow(
+                    new Object[]{
+                            pedido.getId(),
+                            pedido.getDireccion(),
+                            pedido.getTipo(),
+                            pedido.getEstado(),
+                            repartidor
+                    }
+            );
         }
     }
 }

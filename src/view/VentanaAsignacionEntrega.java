@@ -13,6 +13,9 @@ import java.awt.*;
  *
  * Permite seleccionar un pedido y un repartidor,
  * consultar su estado actual e iniciar la simulación.
+ *
+ * La información se actualiza automáticamente
+ * cuando cambia el estado de los pedidos.
  */
 public class VentanaAsignacionEntrega extends JFrame {
 
@@ -23,8 +26,11 @@ public class VentanaAsignacionEntrega extends JFrame {
 
     private JLabel lblEstado;
     private JLabel lblRepartidor;
+
     /**
-     * Crea la ventana de gestión de entregas.
+     * Crea la ventana de gestión de entregas
+     * y la registra para recibir cambios
+     * desde el controlador.
      *
      * @param controlador controlador compartido del sistema
      */
@@ -36,9 +42,18 @@ public class VentanaAsignacionEntrega extends JFrame {
 
         configurarVentana();
         inicializarComponentes();
+
+        controlador.agregarListener(
+                this::cargarDatos
+        );
+
         cargarDatos();
     }
 
+    /**
+     * Configura las características principales
+     * de la ventana.
+     */
     private void configurarVentana() {
 
         setTitle("SpeedFast - Gestión de Entregas");
@@ -54,10 +69,16 @@ public class VentanaAsignacionEntrega extends JFrame {
         setResizable(false);
     }
 
+    /**
+     * Inicializa los componentes utilizados
+     * para gestionar las entregas.
+     */
     private void inicializarComponentes() {
 
         JPanel panelPrincipal =
-                new JPanel(new BorderLayout(10, 10));
+                new JPanel(
+                        new BorderLayout(10, 10)
+                );
 
         JLabel lblTitulo = new JLabel(
                 "Asignación e inicio de entregas",
@@ -65,7 +86,14 @@ public class VentanaAsignacionEntrega extends JFrame {
         );
 
         JPanel panelFormulario =
-                new JPanel(new GridLayout(4, 2, 10, 10));
+                new JPanel(
+                        new GridLayout(
+                                4,
+                                2,
+                                10,
+                                10
+                        )
+                );
 
         cmbPedidos = new JComboBox<>();
 
@@ -100,23 +128,27 @@ public class VentanaAsignacionEntrega extends JFrame {
         panelFormulario.add(lblRepartidor);
 
         JButton btnAsignar =
-                new JButton("Asignar repartidor");
+                new JButton(
+                        "Asignar repartidor"
+                );
 
         JButton btnIniciar =
-                new JButton("Iniciar entrega");
-
-        JButton btnRefrescar =
-                new JButton("Refrescar");
+                new JButton(
+                        "Iniciar entrega"
+                );
 
         JButton btnCerrar =
-                new JButton("Cerrar");
+                new JButton(
+                        "Cerrar"
+                );
 
         JPanel panelBotones =
-                new JPanel(new FlowLayout());
+                new JPanel(
+                        new FlowLayout()
+                );
 
         panelBotones.add(btnAsignar);
         panelBotones.add(btnIniciar);
-        panelBotones.add(btnRefrescar);
         panelBotones.add(btnCerrar);
 
         panelPrincipal.add(
@@ -157,20 +189,17 @@ public class VentanaAsignacionEntrega extends JFrame {
                 e -> iniciarEntrega()
         );
 
-        btnRefrescar.addActionListener(
-                e -> cargarDatos()
-        );
-
         btnCerrar.addActionListener(
                 e -> dispose()
         );
     }
+
     /**
      * Carga en los JComboBox los pedidos
      * y repartidores disponibles.
      *
-     * También intenta conservar seleccionado
-     * el pedido que estaba activo antes del refresco.
+     * También conserva seleccionado el pedido
+     * que estaba activo antes de la actualización.
      */
     private void cargarDatos() {
 
@@ -213,9 +242,10 @@ public class VentanaAsignacionEntrega extends JFrame {
 
         actualizarInformacionPedido();
     }
+
     /**
-     * Actualiza los JLabel con el estado y el repartidor
-     * correspondiente al pedido seleccionado.
+     * Actualiza la información visual correspondiente
+     * al pedido seleccionado.
      */
     private void actualizarInformacionPedido() {
 
@@ -251,9 +281,10 @@ public class VentanaAsignacionEntrega extends JFrame {
     }
 
     /**
-     * Asigna el repartidor seleccionado al pedido activo.
+     * Asigna el repartidor seleccionado
+     * al pedido activo.
      *
-     * Los errores de validación son mostrados al usuario
+     * Los errores de validación son mostrados
      * mediante JOptionPane.
      */
     private void asignarRepartidor() {
@@ -277,8 +308,6 @@ public class VentanaAsignacionEntrega extends JFrame {
                     this,
                     "Repartidor asignado correctamente."
             );
-
-            actualizarInformacionPedido();
 
         } catch (
                 IllegalArgumentException |
@@ -315,8 +344,6 @@ public class VentanaAsignacionEntrega extends JFrame {
                     this,
                     "Entrega iniciada."
             );
-
-            actualizarInformacionPedido();
 
         } catch (
                 IllegalArgumentException |

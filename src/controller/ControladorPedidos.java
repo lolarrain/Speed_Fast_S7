@@ -10,6 +10,7 @@ import model.Pedido;
 import model.Repartidor;
 import model.TipoPedido;
 
+import javax.swing.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class ControladorPedidos {
 
     private final List<Pedido> pedidos;
     private final List<Repartidor> repartidores;
+    private final List<Runnable> listeners;
 
     private final PedidoDAO pedidoDAO;
     private final RepartidorDAO repartidorDAO;
@@ -48,6 +50,7 @@ public class ControladorPedidos {
 
         pedidos = new ArrayList<>();
         repartidores = new ArrayList<>();
+        listeners = new ArrayList<>();
 
         pedidoDAO = new PedidoDAO();
         repartidorDAO = new RepartidorDAO();
@@ -110,6 +113,33 @@ public class ControladorPedidos {
     }
 
     /**
+     * Registra una acción que será ejecutada
+     * cuando cambie la información de los pedidos.
+     *
+     * @param listener acción que será ejecutada
+     */
+    public void agregarListener(Runnable listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Notifica a las vistas registradas que la información
+     * de los pedidos ha cambiado.
+     *
+     * La actualización se ejecuta en el hilo de eventos
+     * de Swing para mantener segura la interfaz gráfica.
+     */
+    private void notificarCambios() {
+
+        SwingUtilities.invokeLater(() -> {
+
+            for (Runnable listener : listeners) {
+                listener.run();
+            }
+        });
+    }
+
+    /**
      * Registra un nuevo pedido y lo almacena
      * en la base de datos.
      *
@@ -158,6 +188,8 @@ public class ControladorPedidos {
                 "[BD] Pedido " + idGenerado
                         + " registrado correctamente."
         );
+
+        notificarCambios();
     }
 
     /**
@@ -297,6 +329,8 @@ public class ControladorPedidos {
         System.out.println(
                 "[BD] Relación pedido-repartidor guardada."
         );
+
+        notificarCambios();
     }
 
     /**
@@ -309,6 +343,9 @@ public class ControladorPedidos {
      * para evitar bloquear la interfaz gráfica.
      * Después de tres segundos, el pedido cambia
      * a ENTREGADO y el estado final se almacena en MySQL.
+     *
+     * Las vistas registradas son notificadas cuando
+     * cambia el estado del pedido.
      *
      * @param pedido pedido cuya entrega se iniciará
      * @throws IllegalArgumentException si no se selecciona un pedido
@@ -331,6 +368,12 @@ public class ControladorPedidos {
         pedido.iniciarEntrega();
 
         pedidoDAO.actualizarEstado(pedido);
+
+        /*
+         * Actualiza las vistas inmediatamente para mostrar
+         * el estado EN_ENTREGA.
+         */
+        notificarCambios();
 
         System.out.println(
                 "[ENTREGA] Pedido "
@@ -360,6 +403,12 @@ public class ControladorPedidos {
                 pedido.completarEntrega();
 
                 pedidoDAO.actualizarEstado(pedido);
+
+                /*
+                 * Actualiza nuevamente las vistas cuando
+                 * el pedido cambia a ENTREGADO.
+                 */
+                notificarCambios();
 
                 System.out.println(
                         "[ENTREGA] Pedido "
